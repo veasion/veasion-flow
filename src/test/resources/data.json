@@ -1,0 +1,25 @@
+{
+  "defaultConfig": [
+    { "flow":"SO", "startNode":"START", "errorNode":"SO_ERROR" }
+  ],
+  "nodeConfig": [
+    { "code":"START", "name":"开始", "isVirtual":1 },
+    { "code":"IS_PAY", "name":"是否支付", "isVirtual":0 },
+    { "code":"WAIT_PAY", "name":"等待支付", "isVirtual":0 },
+    { "code":"PAY_DONE", "name":"支付完成", "isVirtual":0 },
+    { "code":"SWITCH_1", "name":"switch1", "isVirtual":1 },
+    { "code":"SWITCH_2", "name":"switch2", "isVirtual":1 },
+    { "code":"SWITCH_3", "name":"switch3", "isVirtual":1 },
+    { "code":"SWITCH_DEFAULT", "name":"switch_default", "isVirtual":1 },
+    { "code":"SO_ERROR", "name":"错误节点", "isVirtual":0 }
+  ],
+  "nextConfig": [
+    { "flow":"SO", "node":"START", "nextFlow":"SO", "nextNode":"IS_PAY" },
+    { "flow":"SO", "node":"IS_PAY", "nextFlow":"SO", "nextNode":"PAY_DONE", "cond":"next == 'yes'" },
+    { "flow":"SO", "node":"IS_PAY", "nextFlow":"SO", "nextNode":"WAIT_PAY", "cond":"next == 'no'" },
+    { "flow":"SO", "node":"PAY_DONE", "nextFlow":"SO", "nextNode":"SWITCH_1", "cond":"so.switch == 1" },
+    { "flow":"SO", "node":"PAY_DONE", "nextFlow":"SO", "nextNode":"SWITCH_2", "cond":"so.switch == 2" },
+    { "flow":"SO", "node":"PAY_DONE", "nextFlow":"SO", "nextNode":"SWITCH_3", "cond":"so.switch == 3" },
+    { "flow":"SO", "node":"PAY_DONE", "nextFlow":"SO", "nextNode":"SWITCH_DEFAULT" }
+  ]
+}
