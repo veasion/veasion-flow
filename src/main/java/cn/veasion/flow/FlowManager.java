@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -40,17 +41,27 @@ public class FlowManager {
     private IFlowLock lock;
     private IFlowService flowService;
     private FlowNodeCore flowNodeCore;
-    private ThreadPoolExecutor executor;
+    private ExecutorService executor;
     private IScriptExecutor scriptExecutor;
     private boolean lazyLoadFlowConfig;
     public static final Integer YES = 1;
     public static final int DEFAULT_THREAD_COUNT = Runtime.getRuntime().availableProcessors() * 2;
 
     public FlowManager(IFlowService flowService, boolean lazyLoadFlowConfig) {
+        this(flowService, null, null, lazyLoadFlowConfig);
+    }
+
+    public FlowManager(IFlowService flowService, IFlowLock lock, ExecutorService executor, boolean lazyLoadFlowConfig) {
+        if (lock == null) {
+            lock = new SimpleFlowLock();
+        }
+        if (executor == null) {
+            executor = new ThreadPoolExecutor(DEFAULT_THREAD_COUNT, DEFAULT_THREAD_COUNT, 1L, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+        }
+        this.lock = lock;
+        this.executor = executor;
         this.lazyLoadFlowConfig = lazyLoadFlowConfig;
         this.flowService = Objects.requireNonNull(flowService);
-        this.lock = new SimpleFlowLock();
-        this.executor = new ThreadPoolExecutor(DEFAULT_THREAD_COUNT, DEFAULT_THREAD_COUNT, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         this.scriptExecutor = new JavascriptScriptExecutor();
         this.flowNodeCore = new FlowNodeCore(flowService);
         if (!this.lazyLoadFlowConfig) {
@@ -139,9 +150,11 @@ public class FlowManager {
     private void updateRunStatus(String flow, String flowCode, FlowRunStatusEnum statusEnum) {
         FlowRun flowRun = flowService.queryFlowRun(flow, flowCode);
         if (flowRun != null) {
-            flowRun.setStatus(statusEnum.getStatus());
-            flowRun.setUpdateTime(new Date());
-            flowService.updateFlowRun(flowRun);
+            FlowRun update = new FlowRun();
+            update.setId(flowRun.getId());
+            update.setStatus(statusEnum.getStatus());
+            update.setUpdateTime(new Date());
+            flowService.updateFlowRun(update);
         }
     }
 
@@ -157,7 +170,9 @@ public class FlowManager {
             throw new FlowException("该流程节点正在运行中");
         }
         FlowContext lastContext = FlowContext.convertFlowContext(flowRun.getRunData());
-        FlowContext.copy(lastContext, context);
+        if (lastContext != null) {
+            FlowContext.copy(lastContext, context);
+        }
         List<FlowNextNode> nodes = flowNodeCore.getNodes(flowRun.getFlow(), flowRun.getNode());
         if (nodes == null || nodes.isEmpty()) {
             // 节点消失，暂停
@@ -194,6 +209,7 @@ public class FlowManager {
                     break;
                 }
                 context.getTrackMap().clear();
+                // 执行流程节点
                 flowNode.onFlow(context);
             }
             if (onAfter != null && !"".equals(onAfter)) {
@@ -253,7 +269,7 @@ public class FlowManager {
     private void recordTrack(FlowContext context, FlowRun flowRun, FlowNextConfig flowNextConfig, long timeMillis) {
         flowRun.setNode(flowNextConfig.getNode());
         flowRun.setStatus(FlowRunStatusEnum.NORMAL.getStatus());
-        flowRun.setRunData(FlowContext.convertRunData(context));
+        flowRun.setRunData(context.convertRunData());
         flowRun.setUpdateTime(new Date());
         flowService.updateFlowRun(flowRun);
         FlowRunTrack flowRunTrack = new FlowRunTrack();
@@ -274,7 +290,7 @@ public class FlowManager {
         flowRun.setFlow(node.getFlowNextConfig().getFlow());
         flowRun.setNode(node.getFlowNextConfig().getNode());
         flowRun.setFlowCode(context.getFlowCode());
-        flowRun.setRunData(FlowContext.convertRunData(context));
+        flowRun.setRunData(context.convertRunData());
         flowRun.setStatus(FlowRunStatusEnum.INIT.getStatus());
         flowRun.setCreateTime(new Date());
         flowService.saveFlowRun(flowRun);

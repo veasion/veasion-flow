@@ -11,10 +11,10 @@ import java.util.Date;
  */
 public class BaseBean implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private Long id;
-    private Long isDeleted;
+    private Integer isDeleted;
     private Date createTime;
     private Date updateTime;
 
@@ -26,11 +26,11 @@ public class BaseBean implements Serializable {
         this.id = id;
     }
 
-    public Long getIsDeleted() {
+    public Integer getIsDeleted() {
         return isDeleted;
     }
 
-    public void setIsDeleted(Long isDeleted) {
+    public void setIsDeleted(Integer isDeleted) {
         this.isDeleted = isDeleted;
     }
 

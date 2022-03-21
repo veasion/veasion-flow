@@ -22,6 +22,7 @@ public class FlowContext {
     private String flowCode;
     private FlowRun flowRun;
     private FlowContext parent;
+    private boolean saveRunData = true;
     private ScriptContext scriptContext;
     private Map<String, Object> trackMap = new HashMap<>();
     private Map<String, Object> data = new ConcurrentHashMap<>();
@@ -93,17 +94,23 @@ public class FlowContext {
         return trackMap;
     }
 
-    public static String convertRunData(FlowContext context) {
+    public String convertRunData() {
+        if (!saveRunData) {
+            return null;
+        }
         JSONObject json = new JSONObject();
-        json.put("flowCode", context.flowCode);
-        json.put("data", context.data);
-        if (context.parent != null) {
-            json.put("parent", context.parent);
+        json.put("flowCode", flowCode);
+        json.put("data", data);
+        if (parent != null) {
+            json.put("parent", parent);
         }
         return json.toJSONString();
     }
 
     public static FlowContext convertFlowContext(String runData) {
+        if (runData == null || "".equals(runData)) {
+            return null;
+        }
         JSONObject json = JSONObject.parseObject(runData);
         String flowCode = json.getString("flowCode");
         FlowContext context = new FlowContext(flowCode);
@@ -125,6 +132,10 @@ public class FlowContext {
         for (String key : source.data.keySet()) {
             target.data.put(key, source.data.get(key));
         }
+    }
+
+    public void setSaveRunData(boolean saveRunData) {
+        this.saveRunData = saveRunData;
     }
 
 }
