@@ -62,6 +62,10 @@ public class FlowContext {
         trackMap.put(key, value);
     }
 
+    public void putData(String key, Object value) {
+        data.put(key, value);
+    }
+
     public String getFlowCode() {
         return flowCode;
     }
