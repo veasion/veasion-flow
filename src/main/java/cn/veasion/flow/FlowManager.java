@@ -136,24 +136,27 @@ public class FlowManager {
                     runFlowNextNode(context, errorNode, null);
                 } catch (Exception ee) {
                     LOGGER.error("运行错误流程节点异常！flow: {}, flowCode: {}", flowIn.getFlow(), flowIn.getFlowCode(), ee);
-                    updateRunStatus(flowIn.getFlow(), flowIn.getFlowCode(), FlowRunStatusEnum.SUSPEND);
+                    updateRunStatus(context, flowIn.getFlow(), flowIn.getFlowCode(), FlowRunStatusEnum.SUSPEND);
                     return;
                 }
             }
             LOGGER.error("运行流程节点异常！flow: {}, flowCode: {}", flowIn.getFlow(), flowIn.getFlowCode(), e);
-            updateRunStatus(flowIn.getFlow(), flowIn.getFlowCode(), FlowRunStatusEnum.ERROR);
+            updateRunStatus(context, flowIn.getFlow(), flowIn.getFlowCode(), FlowRunStatusEnum.ERROR);
         } finally {
             scriptExecutor.afterFlow(context);
         }
     }
 
-    private void updateRunStatus(String flow, String flowCode, FlowRunStatusEnum statusEnum) {
+    private void updateRunStatus(FlowContext context, String flow, String flowCode, FlowRunStatusEnum statusEnum) {
         FlowRun flowRun = flowService.queryFlowRun(flow, flowCode);
         if (flowRun != null) {
             FlowRun update = new FlowRun();
             update.setId(flowRun.getId());
             update.setStatus(statusEnum.getStatus());
             update.setUpdateTime(new Date());
+            if (context != null) {
+                update.setRunData(context.convertRunData());
+            }
             flowService.updateFlowRun(update);
         }
     }
