@@ -164,7 +164,7 @@ public class FlowManager {
             throw new FlowException("该流程已结束运行");
         }
         if (FlowRunStatusEnum.ERROR.equals(statusEnum)) {
-            throw new FlowException("该流程节点异常结束");
+            // throw new FlowException("该流程节点异常结束");
         }
         if (FlowRunStatusEnum.NORMAL.equals(statusEnum)) {
             throw new FlowException("该流程节点正在运行中");
