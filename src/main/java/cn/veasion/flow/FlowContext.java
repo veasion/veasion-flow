@@ -26,6 +26,7 @@ public class FlowContext {
     private ScriptContext scriptContext;
     private Map<String, Object> trackMap = new HashMap<>();
     private Map<String, Object> data = new ConcurrentHashMap<>();
+    protected boolean suspend = false;
 
     public FlowContext(String flowCode) {
         this.flowCode = flowCode;
@@ -41,6 +42,10 @@ public class FlowContext {
 
     public void nextNo() {
         this.set(NEXT_KEY, "no");
+    }
+
+    public void suspend() {
+        this.suspend = true;
     }
 
     public Map<String, Object> getData() {

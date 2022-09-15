@@ -113,11 +113,10 @@ public class FlowManager {
         if (startNode == null) {
             throw new FlowException(String.format("flow: %s startNode Not Found.", flowIn.getFlow()));
         }
-        FlowRun flowRun = null;
-        if (flowIn.isBasedLastRun()) {
+        FlowRun flowRun = flowService.queryFlowRun(flowIn.getFlow(), flowIn.getFlowCode());
+        if (flowIn.isBasedLastRun() && flowRun != null) {
             // 基于上一次运行
-            flowRun = flowService.queryFlowRun(flowIn.getFlow(), flowIn.getFlowCode());
-            if (flowRun != null && !FlowRunStatusEnum.INIT.equalsStatus(flowRun.getStatus())) {
+            if (!FlowRunStatusEnum.INIT.equalsStatus(flowRun.getStatus())) {
                 startNode = getStartNode(context, flowRun);
                 if (startNode == null) {
                     return;
@@ -166,12 +165,6 @@ public class FlowManager {
         if (FlowRunStatusEnum.FINISH.equals(statusEnum)) {
             throw new FlowException("该流程已结束运行");
         }
-        if (FlowRunStatusEnum.ERROR.equals(statusEnum)) {
-            // throw new FlowException("该流程节点异常结束");
-        }
-        if (FlowRunStatusEnum.NORMAL.equals(statusEnum)) {
-            throw new FlowException("该流程节点正在运行中");
-        }
         FlowContext lastContext = FlowContext.convertFlowContext(flowRun.getRunData());
         if (lastContext != null) {
             FlowContext.copy(lastContext, context);
@@ -193,7 +186,7 @@ public class FlowManager {
         }
         context.setFlowRun(flowRun);
         FlowNextNode nextNode = startNode;
-        do {
+        while (true) {
             context.next();
             FlowNodeConfig node = nextNode.getNode();
             FlowNextConfig flowNextConfig = nextNode.getFlowNextConfig();
@@ -232,13 +225,13 @@ public class FlowManager {
                 LOGGER.warn("未找到节点配置 flow: {}, node: {}", flowNextConfig.getFlow(), flowNextConfig.getNode());
                 break;
             }
-            nextNode = getNextNode(context, nextNodes);
-            if (nextNode == null) {
+            if (context.suspend || (nextNode = getNextNode(context, nextNodes)) == null) {
                 // 未匹配下一个节点，暂停
                 flowRun.setStatus(FlowRunStatusEnum.SUSPEND.getStatus());
                 LOGGER.warn("flow: {}, node: {} 未匹配下一个节点", flowNextConfig.getFlow(), flowNextConfig.getNode());
+                break;
             }
-        } while (nextNode != null);
+        }
         flowRun.setUpdateTime(new Date());
         flowService.updateFlowRun(flowRun);
     }
