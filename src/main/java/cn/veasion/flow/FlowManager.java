@@ -45,7 +45,6 @@ public class FlowManager {
     private IScriptExecutor scriptExecutor;
     private boolean lazyLoadFlowConfig;
     public static final Integer YES = 1;
-    public static final int DEFAULT_THREAD_COUNT = Runtime.getRuntime().availableProcessors() * 2;
 
     public FlowManager(IFlowService flowService, boolean lazyLoadFlowConfig) {
         this(flowService, null, null, lazyLoadFlowConfig);
@@ -56,7 +55,11 @@ public class FlowManager {
             lock = new SimpleFlowLock();
         }
         if (executor == null) {
-            executor = new ThreadPoolExecutor(DEFAULT_THREAD_COUNT, DEFAULT_THREAD_COUNT, 1L, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+            int poolSize = Runtime.getRuntime().availableProcessors();
+            if (poolSize < 2) {
+                poolSize = 2;
+            }
+            executor = new ThreadPoolExecutor(poolSize, poolSize, 1L, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
         }
         this.lock = lock;
         this.executor = executor;
