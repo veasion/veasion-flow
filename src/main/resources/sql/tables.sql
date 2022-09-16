@@ -8,7 +8,7 @@ CREATE TABLE `flow_default_config` (
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程默认配置';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程默认配置';
 
 CREATE TABLE `flow_node_config` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -19,7 +19,7 @@ CREATE TABLE `flow_node_config` (
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程节点配置';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程节点配置';
 
 CREATE TABLE `flow_next_config` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -34,7 +34,7 @@ CREATE TABLE `flow_next_config` (
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程配置';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程配置';
 
 CREATE TABLE `flow_run` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -49,7 +49,7 @@ CREATE TABLE `flow_run` (
   PRIMARY KEY (`id`),
   KEY `idx_create_time` (`create_time`),
   INDEX `idx_flow_code`(`flow_code`, `flow`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程运行';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程运行';
 
 CREATE TABLE `flow_run_track` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -63,4 +63,4 @@ CREATE TABLE `flow_run_track` (
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   INDEX `idx_flow_code`(`flow_code`, `flow`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程运行流水';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程运行流水';
